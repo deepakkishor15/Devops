@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = "deepak158/react-sample"
         DOCKER_CREDENTIALS_ID = "deepak-dockerhub"
-        AWS_CREDENTIALS_ID = "aws-eks-crenticials"
+        AWS_CREDENTIALS_ID = "aws-eks-credentials"
         AWS_REGION = "us-east-1"
         EKS_CLUSTER = "sample-EKS"
     }
@@ -14,9 +14,19 @@ pipeline {
             steps {
                 script {
                     sh '''
+                    # Remove the existing directory if it exists
                     rm -rf react || true
+                    rm -rf Devops || true
+                    
+                    # Clone the repository
                     git clone https://github.com/deepakkishor15/Devops.git
+                    
+                    # Rename the directory to 'react' if needed
+                    mv Devops react
+
+                    # Enter the repository and reset to the latest main branch
                     cd react
+                    git fetch --all
                     git reset --hard origin/main
                     '''
                 }
@@ -38,11 +48,11 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh """
+                    sh '''
                     cd react
                     export DOCKER_BUILDKIT=1
                     docker build -t $DOCKER_IMAGE .
-                    """
+                    '''
                 }
             }
         }
@@ -51,7 +61,9 @@ pipeline {
             steps {
                 script {
                     withDockerRegistry([credentialsId: DOCKER_CREDENTIALS_ID, url: "https://index.docker.io/v1/"]) {
-                        sh "docker push $DOCKER_IMAGE"
+                        sh '''
+                        docker push $DOCKER_IMAGE
+                        '''
                     }
                 }
             }
@@ -61,11 +73,11 @@ pipeline {
             steps {
                 script {
                     withCredentials([aws(credentialsId: AWS_CREDENTIALS_ID, region: AWS_REGION)]) {
-                        sh """
+                        sh '''
                         aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER
                         kubectl apply -f react/k8s/deployment.yaml
                         kubectl rollout status deployment/sample-EKS
-                        """
+                        '''
                     }
                 }
             }
