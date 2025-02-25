@@ -14,17 +14,17 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    # Remove the existing directory if it exists
+                    # Remove existing directories if they exist
                     rm -rf react || true
                     rm -rf Devops || true
                     
                     # Clone the repository
                     git clone https://github.com/deepakkishor15/Devops.git
                     
-                    # Rename the directory to 'react' if needed
+                    # Rename directory to react
                     mv Devops react
-
-                    # Enter the repository and reset to the latest main branch
+                    
+                    # Reset to the latest main branch
                     cd react
                     git fetch --all
                     git reset --hard origin/main
@@ -33,12 +33,24 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies & Build React App') {
+        stage('Install Dependencies & Fix Issues') {
             steps {
                 script {
                     sh '''
                     cd react
                     npm install
+                    npm audit fix --force  # Fix vulnerabilities
+                    npm run lint --fix || true  # Automatically fix lint errors
+                    '''
+                }
+            }
+        }
+
+        stage('Build React App') {
+            steps {
+                script {
+                    sh '''
+                    cd react
                     npm run build
                     '''
                 }
