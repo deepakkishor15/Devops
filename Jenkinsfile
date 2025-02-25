@@ -24,20 +24,26 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies & Fix Security Issues') {
-            steps {
-                script {
-                    sh '''
-                    cd react
-                    rm -rf node_modules package-lock.json
-                    npm install -g npm@latest
-                    npm cache clean --force
-                    npm install --legacy-peer-deps
-                    npm audit fix --force
-                    '''
-                }
-            }
+      stage('Install Dependencies & Fix Security Issues') {
+    steps {
+        script {
+            sh '''
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+            nvm use 20
+
+            node -v
+            npm -v
+
+            rm -rf node_modules package-lock.json
+            npm install -g npm@latest
+            npm install
+            '''
         }
+    }
+}
+
 
         stage('Build React App') {
             steps {
