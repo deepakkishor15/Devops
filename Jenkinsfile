@@ -14,7 +14,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    rm -rf random-colour-DevOps || true
+                    rm -rf react || true
                     git clone https://github.com/deepakkishor15/Devops.git
                     cd react
                     git reset --hard origin/main
