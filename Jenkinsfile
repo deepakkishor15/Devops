@@ -24,14 +24,22 @@ pipeline {
             }
         }
 
-      stage('Install Dependencies & Fix Security Issues') {
+ stage('Install Dependencies & Fix Security Issues') {
     steps {
         script {
             sh '''
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 
-            nvm use 20
+            NODE_VERSION="20" # Set your required Node.js version
+            NODE_PATH=$(find "$NVM_DIR/versions/node" -name "v$NODE_VERSION*" | head -n 1)
+
+            if [ -d "$NODE_PATH" ]; then
+                export PATH="$NODE_PATH/bin:$PATH"
+            else
+                echo "Node.js v$NODE_VERSION not found!"
+                exit 1
+            fi
 
             node -v
             npm -v
@@ -43,6 +51,7 @@ pipeline {
         }
     }
 }
+
 
 
         stage('Build React App') {
